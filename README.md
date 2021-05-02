@@ -1,92 +1,143 @@
 # 音楽アプリのバックエンドAPI
+DynamoDBのテーブル設計を理解するためのバックエンドAPIを開発
 
 ## 構成
 
 - Amazon Dynamo DB
 - API Gateway
 - Amazon Lambda
-- ElastiCache
 
 後日図を作成
 
-## URLテーブル
+## URL,クエリ設計
 
-  |  HTTP Verb  |  URL  |  用途  |
-  | ---- | ---- | ---- |
-  |  GET  |  /blog/articles  |  アーティスト名を指定して全ての曲を見つける  |
-  |  GET  |  /blog/articles/  |  ジャンルを指定して全てのアルバムを見つける  |
-  |  GET  |  /blog/  |  リリース年とアーティスト名から曲を検索する  |
-  |  GET  |  /blog/  |  全探索  |
-  |  PATCH  |  /blog/  |    |
-  |  PUT  |  /blog/  |    |
-  |  DELETE  |  /blog/  |    |
+### URLテーブル
 
-## pymemcache操作
+|  HTTP Verb  |  URL  |  クエリ説明  |
+| ---- | ---- | ---- |
+|  GET  |  /artists  |  アーティスト名を指定して全ての曲を見つける  |
+|  GET  |  /genres  |  ジャンルを指定して全てのアルバムを見つける  |
+|  GET  |  /artists?release={}  |  リリース年とアーティスト名から曲を検索する  |
+|  PATCH  |  /artists  |    |
+|  PUT  |  /blog  |    |
+|  DELETE  |  /blog  |    |
 
-### set
+### クエリから必要の機能を洗い出し
 
-- メソッド
+- [ ] Artist名からSongを探す
+- [x] Genreを指定してAlbumを探す
+- [ ] Artist名もしくはReleaseからSongを探す
 
-```python
-set(key, value, expire=0, noreply=None, flags=None)
-```
+## DBテーブル設計
 
-- パラメータ
-  - key：str
-  - value：str
-  - expire：オプションのint型．キャッシュからvalueが削除されるまでの秒数．削除されない場合は0．
-  - noreply：オプションのbool型，返事を待たない場合は True (デフォルトは self.default_noreply)
-  - flags：オプションのint型，サーバー固有のフラグに使われる任意のビットフィールド．
-- 戻り値
-  - 例外が発生しない場合は，常にTrueを返す．
-  - 例外が発生した場合は，setができたかを返す
-  - noreplyがTrueの場合．setの成功は保証されない。
+### RDBMSテーブル設計図
 
-### get
+<img src="https://user-images.githubusercontent.com/49640294/116804982-1c990d00-ab5e-11eb-915b-6d051bb7fe2b.png" width="45%" alt="MusicAPIテーブル">
 
-- メソッド
+### Artistテーブル
 
-```python
-get(key, default=None)
-```
+|ID|ArtistName|CareerSelect| |
+|:----|:----|:----|:----|
+|1|ずっと真夜中でいいのに。|2018| |
+|2|RADWIMPS|2004| |
+|3|YOASOBI|2019| |
 
-1つのキーに対してのみ使用.
+### Songテーブル
 
-- パラメータ
-  - key：str
-  - default：keyが見つからなかった場合に返される値
+|ID|SongTitle|Artist ID|Released|Alubum ID|
+|:----|:----|:----|:----|:----|
+|1|Ham|1|2020|1|
+|2|サターン|1|2018|2|
+|3|夜に駆ける|2|2019|3|
+|4|君と羊と青|3|2011|4|
+|5|ふたりごと|3|2006|5|
+|6|有心論|3|2006|5|
 
-- 戻り値
-  - keyに対してのvalue
-  - keyが見つからなかった場合はdefault
+### Albumテーブル
 
-### get_many
+|ID|AlbumTitle|Artist ID|Genre|
+|:----|:----|:----|:----|
+|1|朗らかな皮膚とて不服|1|邦ロック|
+|2|正しい偽りからの起床|1|邦ロック|
+|3|THE BOOK|2|J-POP|
+|4|絶体絶命|3|邦ロック|
+|5|おかずのご飯|3|邦ロック|
 
-- メソッド
+### 隣接関係のリスト設計パターン
 
-```python
-get_many(keys)
-```
+#### テーブル
 
-- パラメータ
-  - keys：List(str)
+|Partition key(GSI1のSK)|Sort key(GSI1のPK,GSI2のPK)|Data|Career Start|
+|:----|:----|:----|:----|
+|Artist-1|Song-1| | |
+|Artist-1|Song-2| | |
+|Artist-1|Album-1| | |
+|Artist-1|Album-2| | |
+|Artist-2|Song-3| | |
+|Artist-2|Album-3| | |
+|Artist-3|Song-4| | |
+|Artist-3|Song-5| | |
+|Artist-3|Song-6| | |
+|Artist-3|Album-4| | |
+|Artist-3|Album-5| | |
+|Artist-1|Artist_Name|ずっと真夜中でいいのに。| |
+|Artist-2|Artist_Name|RADWIMPS| |
+|Artist-3|Artist_Name|YOASOBI| |
+|Song-1|Song_Name|Ham| |
+|Song-2|Song_Name|サターン| |
+|Song-3|Song_Name|夜に駆ける| |
+|Song-4|Song_Name|君と羊と青| |
+|Song-5|Song_Name|ふたりごと| |
+|Song-6|Song_Name|有心論| |
+|Song-1|Song_ArtistName|ずっと真夜中でいいのに。| |
+|Song-2|Song_ArtistName|ずっと真夜中でいいのに。| |
+|Song-3|Song_ArtistName|YOASOBI| |
+|Song-4|Song_ArtistName|RADWIMPS| |
+|Song-5|Song_ArtistName|RADWIMPS| |
+|Song-6|Song_ArtistName|RADWIMPS| |
+|Song-1|Song_Release|2020| |
+|Song-2|Song_Release|2018| |
+|Song-3|Song_Release|2019| |
+|Song-4|Song_Release|2011| |
+|Song-5|Song_Release|2006| |
+|Song-6|Song_Release|2006| |
+|Album-1|Album_Name|朗らかな皮膚とて不服| |
+|Album-2|Album_Name|正しい偽りからの起床| |
+|Album-3|Album_Name|THE BOOK| |
+|Album-4|Album_Name|絶体絶命| |
+|Album-5|Album_Name|おかずのご飯| |
+|Album-1|Album_Genre|邦ロック| |
+|Album-2|Album_Genre|邦ロック| |
+|Album-3|Album_Genre|J-POP| |
+|Album-4|Album_Genre|邦ロック| |
+|Album-5|Album_Genre|邦ロック| |
+|Artist-1|Artist-1| |2018|
+|Artist-2|Artist-2| |2004|
+|Artist-2|Artist-2| |2019|
 
-- 戻り値
-  - 引数はリストで、値はキャッシュから辞書型で返される
+#### 用語
 
-### gets
+- GSI：Global Secondary Index
+- LSI：Local Secondary Index
 
-- メソッド
+#### 設計のコツ
 
-```python
-gets(key, default=None, cas_default=None)
-```
+1. RDBMSにおいて、最も重要そうなエンティティのPrimary Key(エンティティのID)をPartition Keyに設定
+   - Primary Keyに関係あるエンティティの外部キーをSort Keyに追加
+   - こうすることでをアソシエーションを実現し、検索を高速化できる
+2. 必要なクエリを洗い出す
+   - クエリに引っ掛かる用語が含まれているエンティティをPartition Keyに
+   - {エンティティ名}_{カラム名}をSort Keyに
+   - Dataというカラムを作成し、Sort Keyに入れたカラムの値を入れる
+   - Sort KeyをPartition Keyに、Partition KeyをSort KeyにしたGSIを導入することで、検索を高速化できる(GSI1)
+3. 残りのカラムはエンティティIDをPartition KeyとSort Keyに入れる
+   - Sort KeyをPartition KeyにしたGSIを導入することで、検索を高速化(GSI2)
+4. その他、必要に応じて、LSIとGSIを使い、検索を高速化する
 
-- パラメータ
-  - key：str
-  - default：keyが見つからなかった場合に返される値
-  - cas_default：defaultと同じ
+## 参考サイト
 
-- 戻り値
-  - (value, cas)のタプル
-  - keyが見つからない場合は(default, cas_defaults)のタプル
+> AWS スライド  
+> https://www.slideshare.net/AmazonWebServicesJapan/db-20190905
+
+> ブログ記事
+> https://mizumotok.hatenablog.jp/entry/2019/08/14/175525
