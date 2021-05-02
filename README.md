@@ -1,4 +1,4 @@
-# 音楽アプリのバックエンドAPI
+# テストAPI開発
 
 DynamoDBのテーブル設計を理解するためのバックエンドAPIを開発
 
@@ -16,12 +16,13 @@ DynamoDBのテーブル設計を理解するためのバックエンドAPIを開
 
 |  HTTP Verb  |  URL  |  クエリ説明  |
 | ---- | ---- | ---- |
-|  GET  |  /artists  |  アーティスト名を指定して全ての曲を見つける  |
-|  GET  |  /genres  |  ジャンルを指定して全てのアルバムを見つける  |
-|  GET  |  /artists?release={}  |  リリース年とアーティスト名から曲を検索する  |
-|  PATCH  |  /artists  |    |
-|  PUT  |  /blog  |    |
-|  DELETE  |  /blog  |    |
+|  GET  |  /songs?artist_name={}  |  アーティスト名を指定して全ての曲を取得  |
+|  GET  |  /albums?genre={}  |  ジャンルを指定してアルバム一覧を取得  |
+|  GET  |  /songs?release={}&artist_name={} |  リリース年とアーティスト名から曲を取得  |
+|  GET  |  /songs?name={}  |  指定した曲の名前を取得 |
+|  PATCH  |  /songs/:id |  指定したidの曲を変更 |
+|  PUT  |  /songs  |  曲を追加  |
+|  DELETE  |  /songs/:id  |  指定したidの曲を削除  |
 
 ### クエリから必要の機能を洗い出し
 
