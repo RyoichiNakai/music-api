@@ -1,4 +1,5 @@
 # 音楽アプリのバックエンドAPI
+
 DynamoDBのテーブル設計を理解するためのバックエンドAPIを開発
 
 ## 構成
@@ -28,7 +29,7 @@ DynamoDBのテーブル設計を理解するためのバックエンドAPIを開
 - [x] Genreを指定してAlbumを探す
 - [ ] Artist名もしくはReleaseからSongを探す
 
-## DBテーブル設計
+## DBのテーブル設計
 
 ### RDBMSテーブル設計図
 
@@ -137,7 +138,6 @@ DynamoDBのテーブル設計を理解するためのバックエンドAPIを開
 ## 参考サイト
 
 > AWS スライド  
-> https://www.slideshare.net/AmazonWebServicesJapan/db-20190905
-
-> ブログ記事
-> https://mizumotok.hatenablog.jp/entry/2019/08/14/175525
+> <https://www.slideshare.net/AmazonWebServicesJapan/db-20190905>  
+> ブログ記事  
+> <https://mizumotok.hatenablog.jp/entry/2019/08/14/175525>
