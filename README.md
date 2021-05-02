@@ -30,7 +30,7 @@ DynamoDBのテーブル設計を理解するためのバックエンドAPIを開
 - [x] Genreを指定してAlbumを探す
 - [ ] Artist名もしくはReleaseからSongを探す
 
-## DBのテーブル設計
+## DBのテーブル設計
 
 ### RDBMSテーブル設計図
 
