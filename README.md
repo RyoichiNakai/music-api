@@ -38,11 +38,11 @@ DynamoDBのテーブル設計を理解するためのバックエンドAPIを開
 
 ### Artistテーブル
 
-|ID|ArtistName|CareerSelect| |
-|:----|:----|:----|:----|
-|1|ずっと真夜中でいいのに。|2018| |
-|2|RADWIMPS|2004| |
-|3|YOASOBI|2019| |
+|ID|ArtistName|CareerSelect|
+|:----|:----|:----|
+|1|ずっと真夜中でいいのに。|2018|
+|2|RADWIMPS|2004|
+|3|YOASOBI|2019|
 
 ### Songテーブル
 
