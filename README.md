@@ -22,6 +22,8 @@ DynamoDBのテーブル設計を理解するためのバックエンドAPIを開
 |  GET  |  /songs?name={}  |  指定した曲の名前を取得 |
 |  PATCH  |  /songs/:id |  指定したidの曲を変更 |
 |  PUT  |  /songs  |  曲を追加  |
+|  PUT  |  /albums  |  アルバムを追加  |
+|  PUT  |  /artists  |  アーティストを追加  |
 |  DELETE  |  /songs/:id  |  指定したidの曲を削除  |
 
 ### クエリから必要の機能を洗い出し
