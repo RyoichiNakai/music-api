@@ -1,6 +1,7 @@
 from __future__ import print_function
 import boto3
 import uuid
+import json
 from decimal import Decimal
 
 # DynamoDbの接続先
@@ -14,7 +15,7 @@ def decimal_default_proc(obj):
     raise TypeError
 
 def return200(res_body):
-    return{
+    return {
         'statusCode': 200,
         'body': json.dumps(
             res_body,
@@ -26,7 +27,7 @@ def return400(message_str):
     body = {
         'errorMessage': message_str
     }
-    return{
+    return {
         'statusCode': 400,
         'body': json.dumps(body)
     }
@@ -50,30 +51,51 @@ def create_song():
     # uuidの初期化
     new_uuid = uuid.uuid4().hex
     # print(type(new_uuid))
-    
     return
 
-def create_artist():
+def create_artist(payload):
     # uuidの初期化
     new_uuid = uuid.uuid4().hex
-    return
+    name = {
+        'partiton_key': 'artist-{}'.format(new_uuid),
+        'sort_key': 'artist_name',
+        'data': payload['name']
+    }
+    career_start = {
+        'partiton_key': 'artist-{}'.format(new_uuid),
+        'sort_key': 'artist-{}'.format(new_uuid),
+        'career_start': payload['career_start']
+    }
+
+    try:
+       with table.batch_writer() as batch:
+           batch.put_Item(name)
+           batch.put_Item(career_start)
+    except Exception as e:
+        return400(str(e))
+
+    return return200({
+        'message': 'Successfully! Add Table (name: {})'.format(payload['name'])
+    })
 
 def lambda_handler(event, context):
-    print(event)
+    res = return400('bad request')
 
     # ルーティングの決定
-    if event['httpMethod'] == 'GET':
+    if event['method'] == 'GET':
+
         if event['resource'] == '/songs':
             get_songs()
         elif event['resource'] == '/albums':
             get_albums()
-    elif event['httpMethod'] == 'POST':
-        if event['resource'] == '/songs':
-            create_song()
-        elif event['resource'] == '/albums':
-            create_album()
-        elif event['resource'] == '/artists':
-            create_artist()
 
-if __name__ == '__main__':
-    create_song()
+    elif event['method'] == 'POST':
+
+        if event['resource'] == '/songs':
+            res = create_song()
+        elif event['resource'] == '/albums':
+            res = create_album()
+        elif event['resource'] == '/artists':
+            res = create_artist(event['payload'])
+
+    return res
