@@ -1,4 +1,3 @@
-from __future__ import print_function
 import boto3
 import uuid
 import json
@@ -56,46 +55,47 @@ def create_song():
 def create_artist(payload):
     # uuidの初期化
     new_uuid = uuid.uuid4().hex
+
     name = {
-        'partiton_key': 'artist-{}'.format(new_uuid),
+        'partition_key': 'artist-{}'.format(new_uuid),
         'sort_key': 'artist_name',
-        'data': payload['name']
+        'data': payload['name'],
     }
     career_start = {
-        'partiton_key': 'artist-{}'.format(new_uuid),
+        'partition_key': 'artist-{}'.format(new_uuid),
         'sort_key': 'artist-{}'.format(new_uuid),
         'career_start': payload['career_start']
     }
 
     try:
-       with table.batch_writer() as batch:
-           batch.put_Item(name)
-           batch.put_Item(career_start)
+        with table.batch_writer() as batch:
+            batch.put_item(Item=name)
+            batch.put_item(Item=career_start)
+
     except Exception as e:
-        return400(str(e))
+        return return400(str(e))
 
     return return200({
-        'message': 'Successfully! Add Table (name: {})'.format(payload['name'])
+        'message': 'Successfully! Add new record: id: artist-{}, name: {}'.format(new_uuid, payload['name'])
     })
 
 def lambda_handler(event, context):
-    res = return400('bad request')
 
     # ルーティングの決定
     if event['method'] == 'GET':
 
         if event['resource'] == '/songs':
-            get_songs()
+            return get_songs()
         elif event['resource'] == '/albums':
-            get_albums()
+            return get_albums()
 
     elif event['method'] == 'POST':
 
         if event['resource'] == '/songs':
-            res = create_song()
+            return create_song()
         elif event['resource'] == '/albums':
-            res = create_album()
+            return create_album()
         elif event['resource'] == '/artists':
-            res = create_artist(event['payload'])
+            return create_artist(event['payload'])
 
-    return res
+    return return400('bad request')
