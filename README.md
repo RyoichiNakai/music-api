@@ -71,7 +71,7 @@ DynamoDBのテーブル設計を理解するためのバックエンドAPIを開
 
 #### テーブル
 
-|Partition key(GSI1のSK)|Sort key(GSI1のPK,GSI2のPK)|Data|Career Start|
+|Partition key(GSI1のSK)|Sort key(GSI1のPK,GSI2のPK)|Data(GSI2のSK)|Career Start|
 |:----|:----|:----|:----|
 |Artist-1|Song-1| | |
 |Artist-1|Song-2| | |
@@ -137,6 +137,11 @@ DynamoDBのテーブル設計を理解するためのバックエンドAPIを開
 3. 残りのカラムはエンティティIDをPartition KeyとSort Keyに入れる
    - Sort KeyをPartition KeyにしたGSIを導入することで、検索を高速化(GSI2)
 4. その他、必要に応じて、LSIとGSIを使い、検索を高速化する
+
+### 注意書き
+
+- 今回のテーブル設計では、アルバムと曲のリレーションを追加していない
+  - クエリを必要としていなかったため
 
 ## 参考サイト
 
