@@ -89,7 +89,7 @@ def create_song(payload):
         return return400(str(e))
 
     return return200({
-        'message': 'Successfully! Add new record: id: song-{}, name: {}'.format(new_uuid, payload['name'])
+        'message': 'Successfully! Add new record: id: song-{}, name: {}, release: {}, artist-name: {}'.format(new_uuid, payload['name'], payload['release'], payload['artist_name'])
     })
 
 def create_artist(payload):
