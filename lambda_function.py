@@ -14,6 +14,7 @@ def decimal_default_proc(obj):
         return int(obj)
     raise TypeError
 
+
 def return200(res_body):
     return {
         'statusCode': 200,
@@ -22,6 +23,7 @@ def return200(res_body):
             default=decimal_default_proc
         )
     }
+
 
 def return400(message_str):
     body = {
@@ -32,10 +34,70 @@ def return400(message_str):
         'body': json.dumps(body)
     }
 
-def get_songs():
-    # 引数はリクエストパラメータをstr型のListで受け取る
-    # それをテーブルで探索する
-    return
+
+def get_songs_by_artist_and_release(params):
+    resp = list()
+    try:
+        songs = table.query(
+            IndexName="SK-Data_index",
+            KeyConditionExpression=
+                Key('sort_key').eq('song_artist_name')
+                & Key('data').eq(params['artist_name'])
+        )
+    except Exception as e:
+        return return400(str(e))
+
+    if songs['Items'] == []:
+        return return400('There are no records that match KeyConditionExpression.')
+
+    for song in songs['Items']:
+        song_released = table.query(
+                    IndexName="SK-PK_index",
+                    KeyConditionExpression=Key('sort_key').eq('song_release') & Key('partition_key').eq(song['partition_key'])
+        )['Items'][0]['data']
+
+        if song_released != params['release']:
+            continue
+
+        try:
+            resp.append(
+                table.query(
+                    IndexName="SK-PK_index",
+                    KeyConditionExpression=Key('sort_key').eq('song_name') & Key('partition_key').eq(song['partition_key'])
+                )['Items'][0]['data']
+            )
+        except Exception as e:
+            return return400(str(e))
+
+    return return200(resp)
+
+
+def get_songs_by_artist(params):
+    resp = list()
+    try:
+        songs = table.query(
+            IndexName="SK-Data_index",
+            KeyConditionExpression=Key('sort_key').eq('song_artist_name') & Key('data').eq(params['artist_name'])
+        )
+    except Exception as e:
+        return return400(str(e))
+
+    if songs['Items'] == []:
+        return return400('There are no records that match KeyConditionExpression.')
+
+    for song in songs['Items']:
+        try:
+            resp.append(
+                table.query(
+                    IndexName="SK-PK_index",
+                    KeyConditionExpression=Key('sort_key').eq('song_name') & Key('partition_key').eq(song['partition_key'])
+                )['Items'][0]['data']
+            )
+        except Exception as e:
+            return return400(str(e))
+
+    return return200(resp)
+
 
 def get_albums_by_genre(params):
     resp = list()
@@ -46,7 +108,6 @@ def get_albums_by_genre(params):
         )
     except Exception as e:
         return return400(str(e))
-    print(albums, params)
 
     if albums['Items'] == []:
         return return400('There are no records that match KeyConditionExpression.')
@@ -55,13 +116,15 @@ def get_albums_by_genre(params):
         try:
             resp.append(
                 table.query(
-                    KeyConditionExpression=Key('partition_key').eq(album['partition_key']) & Key('sort_key').eq('album_name')
+                    IndexName="SK-PK_index",
+                    KeyConditionExpression=Key('sort_key').eq('album_name') & Key('partition_key').eq(album['partition_key'])
                 )['Items'][0]['data']
             )
         except Exception as e:
             return return400(str(e))
 
     return return200(resp)
+
 
 def create_album(payload):
     # uuidの初期化
@@ -105,6 +168,7 @@ def create_album(payload):
     return return200({
         'message': 'Successfully! Add new record: id: album-{}, name: {}, genre: {}'.format(new_uuid, payload['name'], payload['genre'])
     })
+
 
 def create_song(payload):
     # uuidの初期化
@@ -154,6 +218,7 @@ def create_song(payload):
         'message': 'Successfully! Add new record: id: song-{}, name: {}, release: {}, artist_name: {}'.format(new_uuid, payload['name'], payload['release'], payload['artist_name'])
     })
 
+
 def create_artist(payload):
     # uuidの初期化
     new_uuid = uuid.uuid4().hex
@@ -188,8 +253,10 @@ def lambda_handler(event, context):
     # ルーティングの決定
     if event['method'] == 'GET':
 
-        if event['resource'] == '/songs':
-            return get_songs()
+        if event['resource'] == '/songs' and event['params']['release'] == '':
+            return get_songs_by_artist(event['params'])
+        elif event['resource'] == '/songs':
+            return get_songs_by_artist_and_release(event['params'])
         elif event['resource'] == '/albums':
             return get_albums_by_genre(event['params'])
 
@@ -202,4 +269,9 @@ def lambda_handler(event, context):
         elif event['resource'] == '/artists':
             return create_artist(event['payload'])
 
+    # 後日作成
+    elif event['method'] == 'DELETE':
+        return
+    elif event['method'] == 'PATCH':
+        return
     return return400('bad request')
