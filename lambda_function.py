@@ -42,10 +42,45 @@ def get_albums():
     # それをテーブルで探索する
     return
 
-def create_album():
+def create_album(payload):
     # uuidの初期化
     new_uuid = uuid.uuid4().hex
-    return
+
+    try:
+        resp = table.query(
+            IndexName="SK-Data_index",
+            KeyConditionExpression=Key('sort_key').eq('artist_name') & Key('data').eq(payload['artist_name']) ,
+        )
+    except Exception as e:
+        return return400(str(e))
+
+    items = [
+        {
+            'partition_key': resp['Items'][0]['partition_key'], # 一意に決まるので[0]として問題なし
+            'sort_key': 'album-{}'.format(new_uuid)
+        },
+        {
+            'partition_key': 'album-{}'.format(new_uuid),
+            'sort_key': 'album-name',
+            'data': payload['name']
+        },
+        {
+            'partition_key': 'album-{}'.format(new_uuid),
+            'sort_key': 'album-genre',
+            'data': payload['genre']
+        }
+    ]
+
+    try:
+        with table.batch_writer() as batch:
+            for item in items:
+                batch.put_item(Item=item)
+    except Exception as e:
+        return return400(str(e))
+
+    return return200({
+        'message': 'Successfully! Add new record: id: album-{}, name: {}, genre: {}'.format(new_uuid, payload['name'], payload['genre'])
+    })
 
 def create_song(payload):
     # uuidの初期化
