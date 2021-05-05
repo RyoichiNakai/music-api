@@ -37,10 +37,31 @@ def get_songs():
     # それをテーブルで探索する
     return
 
-def get_albums():
-    # 引数はリクエストパラメータをstr型のListで受け取る
-    # それをテーブルで探索する
-    return
+def get_albums_by_genre(params):
+    resp = list()
+    try:
+        albums = table.query(
+            IndexName="SK-Data_index",
+            KeyConditionExpression=Key('sort_key').eq('album_genre') & Key('data').eq(params['genre'])
+        )
+    except Exception as e:
+        return return400(str(e))
+    print(albums, params)
+
+    if albums['Items'] == []:
+        return return400('There are no records that match KeyConditionExpression.')
+
+    for album in albums['Items']:
+        try:
+            resp.append(
+                table.query(
+                    KeyConditionExpression=Key('partition_key').eq(album['partition_key']) & Key('sort_key').eq('album_name')
+                )['Items'][0]['data']
+            )
+        except Exception as e:
+            return return400(str(e))
+
+    return return200(resp)
 
 def create_album(payload):
     # uuidの初期化
@@ -49,10 +70,13 @@ def create_album(payload):
     try:
         resp = table.query(
             IndexName="SK-Data_index",
-            KeyConditionExpression=Key('sort_key').eq('artist_name') & Key('data').eq(payload['artist_name']) ,
+            KeyConditionExpression=Key('sort_key').eq('artist_name') & Key('data').eq(payload['artist_name'])
         )
     except Exception as e:
         return return400(str(e))
+
+    if resp['Items'] == []:
+        return return400('There are no records that match KeyConditionExpression.')
 
     items = [
         {
@@ -61,12 +85,12 @@ def create_album(payload):
         },
         {
             'partition_key': 'album-{}'.format(new_uuid),
-            'sort_key': 'album-name',
+            'sort_key': 'album_name',
             'data': payload['name']
         },
         {
             'partition_key': 'album-{}'.format(new_uuid),
-            'sort_key': 'album-genre',
+            'sort_key': 'album_genre',
             'data': payload['genre']
         }
     ]
@@ -89,10 +113,13 @@ def create_song(payload):
     try:
         resp = table.query(
             IndexName="SK-Data_index",
-            KeyConditionExpression=Key('sort_key').eq('artist_name') & Key('data').eq(payload['artist_name']) ,
+            KeyConditionExpression=Key('sort_key').eq('artist_name') & Key('data').eq(payload['artist_name'])
         )
     except Exception as e:
         return return400(str(e))
+
+    if resp['Items'] == []:
+        return return400('There are no records that match KeyConditionExpression.')
 
     items = [
         {
@@ -101,17 +128,17 @@ def create_song(payload):
         },
         {
             'partition_key': 'song-{}'.format(new_uuid),
-            'sort_key': 'song-artist_name',
+            'sort_key': 'song_artist_name',
             'data': payload['artist_name']
         },
         {
             'partition_key': 'song-{}'.format(new_uuid),
-            'sort_key': 'song-name',
+            'sort_key': 'song_name',
             'data': payload['name']
         },
         {
             'partition_key': 'song-{}'.format(new_uuid),
-            'sort_key': 'song-release',
+            'sort_key': 'song_release',
             'data': payload['release']
         }
     ]
@@ -124,7 +151,7 @@ def create_song(payload):
         return return400(str(e))
 
     return return200({
-        'message': 'Successfully! Add new record: id: song-{}, name: {}, release: {}, artist-name: {}'.format(new_uuid, payload['name'], payload['release'], payload['artist_name'])
+        'message': 'Successfully! Add new record: id: song-{}, name: {}, release: {}, artist_name: {}'.format(new_uuid, payload['name'], payload['release'], payload['artist_name'])
     })
 
 def create_artist(payload):
@@ -164,7 +191,7 @@ def lambda_handler(event, context):
         if event['resource'] == '/songs':
             return get_songs()
         elif event['resource'] == '/albums':
-            return get_albums()
+            return get_albums_by_genre(event['params'])
 
     elif event['method'] == 'POST':
 
