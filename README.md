@@ -80,7 +80,9 @@ DynamoDBのテーブル設計を理解するためのバックエンドAPIを開
   - `GSI`は`PK以外のキー`を`PK`にして`SK以外のキー`を`SK`にしてテーブルを作成しなおすインデックス
   - `LSI`は`PK`はそのまま、`SK以外のキー`を`SK`にしてテーブルを作成しなおすインデックス
 
-  > DynamoDB設計のベストプラクティス
+<br>
+
+  > DynamoDB設計のベストプラクティス  
   > <https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/developerguide/bp-general-nosql-design.html>
 
   > インデックスとは？  
@@ -106,7 +108,7 @@ DynamoDBのテーブル設計を理解するためのバックエンドAPIを開
 
 - テーブル
 
-  |Partition key (GSI1のSK)|Sort key (GSIのPK)|
+  |Partition key (GSI1のSK)|Sort key (GSI1のPK)|
   |:----|:----|
   |`Artist-1`|`Song-1`|
   |`Artist-1`|`Song-2`|
@@ -161,7 +163,7 @@ DynamoDBのテーブル設計を理解するためのバックエンドAPIを開
 
 - このことから以下のようにテーブルを設計
 
-  |Partition key (GSI1のSK)|Sort key (GSI1, GSI2のPK)|Data (GSI2のSK)|
+  |Partition key (GSI1のSK)|Sort key (GSI1,GSI2のPK)|Data (GSI2のSK)|
   |:----|:----|:----|
   |Artist-1|Song-1| |
   |Artist-1|Song-2| |
