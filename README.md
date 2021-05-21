@@ -2,6 +2,8 @@
 
 DynamoDBのテーブル設計を理解するためのバックエンドAPIを開発
 
+API URL: <https://api.sample-music.work/>
+
 ## 構成
 
 <div align="center">
@@ -54,11 +56,10 @@ DynamoDBのテーブル設計を理解するためのバックエンドAPIを開
 |GET|/songs?artist_name={}|アーティスト名を指定して全ての曲を取得|【追記】実行時間：約300ms|
 |GET|/albums?genre={}|ジャンルを指定してアルバム一覧を取得|【追記】実行時間：約120ms|
 |GET|/songs?release={}&artist_name={}|リリース年とアーティスト名から曲を取得|【追記】実行時間：約310ms|
-|GET|/songs?name={}|指定した曲の名前を取得|
 |PATCH|/songs/:id|指定したidの曲を変更|実装なし|
-|POST|/songs|曲を追加|
-|POST|/albums|アルバムを追加|
-|POST|/artists|アーティストを追加|
+|POST|/songs|曲を追加|request_body:{name, release, artist_name}|
+|POST|/albums|アルバムを追加|request_body:{name, genre, artist_name}|
+|POST|/artists|アーティストを追加|request_body:{name, career_start}|
 |DELETE|/songs/:id|指定したidの曲を削除|実装なし|
 
 ### クエリから必要な機能を洗い出す
